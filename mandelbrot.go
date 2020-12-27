@@ -35,10 +35,13 @@ func mandel_range(scale, x0, y0, x1, y1 int) [][]int {
 		go func(x int) {
 			iters[x-x0] = make([]int, y1-y0+1)
 			for y := y0; y <= y1; y++ {
-				iters[x-x0][y-y0] = mandel_point(complex(float64(x)/float64(scale), float64(y)/float64(scale))) 
+				iters[x-x0][y-y0] = mandel_point(complex(float64(x)/float64(scale), float64(y)/float64(scale)))
 			}
 			wg.Done()
 		}(x)
+		if x % 12 == 0 { //prevent too many goroutines
+			wg.Wait()
+		}
 	}
 	wg.Wait()
 	return iters
