@@ -1,8 +1,11 @@
 package main
 
 import (
-	"fmt"
+	"image"
+	"image/png"
+	"image/color"
 	"math/cmplx"
+	"os"
 )
 
 // number of iterations
@@ -20,20 +23,27 @@ func mandel_point(c complex128) int {
 	return i
 }
 
+type MandelbrotImg struct{}
+
+func (m MandelbrotImg) ColorModel() color.Model {
+	return color.RGBAModel
+}
+
+func (m MandelbrotImg) Bounds() image.Rectangle {
+	return image.Rect(-2500, -1000, 1000, 1000) //x0, y0, w, h
+}
+
+func (m MandelbrotImg) At(x, y int) color.Color {
+	iters := mandel_point(complex(float64(x)/1000.0, float64(y)/1000.0))
+	if iters < 0 {
+		return color.RGBA{0, 0, 0, 255}
+	}
+	return color.RGBA{uint8(iters%10)*25, uint8((iters/10)%10)*25, uint8((iters/100)%10)*25, 255}
+}
 
 func main() {
-	for y := -30; y <= 30; y++ {
-		for x := -30; x <= 30; x++ {
-			z := complex(float64(x)/30.0, float64(y)/30.0)
-			iters := mandel_point(z)
-			if iters == -1 {
-				fmt.Print(0)
-			} else {
-				fmt.Print(iters%10)
-			}
-		}
-		fmt.Println()
-	}
-	c1, c2, c3 := 0.0+0.0i, 0.5+0.5i, -1+0.5i
-	fmt.Println(mandel_point(c1), mandel_point(c2), mandel_point(c3))
+	f, _ := os.Create("mbrot.png")
+	m := MandelbrotImg{}
+	png.Encode(f, m)
+	f.Close()
 }
